@@ -87,7 +87,6 @@ public class PatchFragment extends Fragment implements ControlDelegate, PagingSc
     public MainActivity _mainActivity;
 
     Map<String, ArrayList<MMPControl>> _allGUIControlMap; //control address, array of objects with that address. Allows multiple items with same address.
-    Set<String> _wearAddressSet;
 
     int _bgColor;
     private Button _catchButton; // Just to catch a11y focus and allow footswitch.
@@ -96,14 +95,12 @@ public class PatchFragment extends Fragment implements ControlDelegate, PagingSc
     PdUiDispatcher _dispatcher;
     MMPPdGui mPdGui;
 
-    public String loadedWearString; //track gui sent to wear, for main activity to resend on foreground.
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         _mainActivity = (MainActivity)getActivity();
         _allGUIControlMap = new HashMap<String,ArrayList<MMPControl>>();
-        _wearAddressSet = new HashSet<String>();
         mPdGui = new MMPPdGui();
         _dispatcher = new PdUiDispatcher() {
             @Override
@@ -223,8 +220,6 @@ public class PatchFragment extends Fragment implements ControlDelegate, PagingSc
 
     private void loadSceneCommonReset() {
         //TODO check recursion of file paths.
-        loadedWearString = null;
-        _wearAddressSet.clear();
         _allGUIControlMap.clear();
         scrollRelativeLayout.removeAllViews();
 
@@ -464,31 +459,6 @@ public class PatchFragment extends Fragment implements ControlDelegate, PagingSc
             }
 
             JsonArray controlDictArray;//array of dictionaries, one for each gui element
-            // WEAR GUI
-            if (topDict.get("wearGui")!=null) {
-                JsonArray pageGuiArray = topDict.get("wearGui").getAsJsonArray();
-                // construct new dict with background color, and wear gui array
-                JsonObject wearDict = new JsonObject();
-                if(topDict.getAsJsonArray("backgroundColor")!=null){
-                    JsonArray colorArray = topDict.getAsJsonArray("backgroundColor");
-                    wearDict.add("backgroundColor", colorArray);
-                }
-                wearDict.add("wearGui", pageGuiArray);
-                String jsonString = wearDict.toString();
-                _mainActivity.sendWearMessage("/loadGUI", jsonString);
-                // track the wear dict
-                loadedWearString = jsonString;
-
-                // iterate through wear pages and get addresses
-                for(int i=0;i<pageGuiArray.size();i++){
-                    JsonObject pageDict = pageGuiArray.get(i).getAsJsonObject();//page-level dict
-                    if (pageDict.get("pageGui")==null)continue;
-                    JsonObject pageGuiDict = pageDict.get("pageGui").getAsJsonObject();
-                    if(pageGuiDict.get("address")==null)continue;// if doesn't have an address, skip
-                    String address = pageGuiDict.get("address").getAsString();
-                    _wearAddressSet.add(address);
-                }
-            }// end wear
 
             // MAIN GUI
             if(topDict.get("gui")!=null){
@@ -771,12 +741,6 @@ public class PatchFragment extends Fragment implements ControlDelegate, PagingSc
                     List<Object> newList = Arrays.asList(Arrays.copyOfRange(args, 1,args.length));
                     control.receiveList(newList);
                 }
-            }
-            // If wear has the address, send it out.
-            if (_wearAddressSet.contains(addressObj)) {
-                Object argsNoAddress[] = Arrays.copyOfRange(args, 1, args.length);
-                String message = TextUtils.join(" ",argsNoAddress); //rest is turned into list, delimited by space.
-                _mainActivity.sendWearMessage((String)addressObj, message);
             }
         } else if (source.equals("toSystem")) {
             if (args.length==0) return;
