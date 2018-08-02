@@ -2,10 +2,10 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="com.iglesiaintermedia.mobmuplat.NetworkActivity" >
 
-    <item
+    <item xmlns:app="http://schemas.android.com/apk/res-auto"
         android:id="@+id/action_settings"
         android:orderInCategory="100"
         android:title="@string/action_settings"
-        android:showAsAction="never"/>
+        app:showAsAction="never"/>
 
 </menu>
