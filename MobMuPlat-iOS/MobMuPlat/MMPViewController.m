@@ -209,12 +209,12 @@
   _connectedMidiSources = [NSMutableArray array];
   _connectedMidiDestinations = [NSMutableArray array];
 
-  // If iOS 5, then use non-auto-layout xib files.
-  if (SYSTEM_VERSION_LESS_THAN(@"6.0")) {
+  // If iOS 5, then use non-auto-layout xib files. - these xibs are no longer supported.
+  /*if (SYSTEM_VERSION_LESS_THAN(@"6.0")) {
     settingsVC = [[SettingsViewController alloc] initWithNibName:@"SettingsViewControllerIOS5" bundle:nil];
-  } else {
+  } else {*/
     settingsVC = [[SettingsViewController alloc] initWithNibName:nil bundle:nil];
-  }
+  //}
 
   // OSC setup
   _oscManager = [[OSCManager alloc] init];
@@ -706,7 +706,7 @@ static void * kAudiobusRunningOrConnectedChanged = &kAudiobusRunningOrConnectedC
   [[NSUserDefaults standardUserDefaults] setObject:outputIpAddress forKey:@"outputIPAddress"];
 }
 
-- (void)setOutputPort:(int)outputPortNumber {
+- (void)setOutputPortNumber:(int)outputPortNumber {
   if (_outputPortNumber == outputPortNumber) {
     return;
   }
@@ -716,7 +716,7 @@ static void * kAudiobusRunningOrConnectedChanged = &kAudiobusRunningOrConnectedC
   [[NSUserDefaults standardUserDefaults] setObject:@(_outputPortNumber) forKey:@"outputPortNumber"];
 }
 
-- (void)setInputPort:(int)inputPortNumber {
+- (void)setInputPortNumber:(int)inputPortNumber {
   if (_inputPortNumber == inputPortNumber) {
     return;
   }
@@ -2108,7 +2108,7 @@ static void * kAudiobusRunningOrConnectedChanged = &kAudiobusRunningOrConnectedC
 
 -(void)reachabilityChanged:(NSNotification *)note {
   NSString *network = [MMPViewController fetchSSIDInfo];
-  NSArray *msgArray = @[ @"/reachability", @([_reach isReachable] ? 1.0f : 0.0f), network ];
+  NSArray *msgArray = @[ @"/reachability", @([_reach isReachable] ? 1.0f : 0.0f), network == nil ? @"" : network ];
   [PdBase sendList:msgArray toReceiver:@"fromSystem"];
 }
 
